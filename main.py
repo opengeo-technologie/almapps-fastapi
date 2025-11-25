@@ -35,6 +35,12 @@ from .routers import (
     invoice_type,
     payment_method,
     payment,
+    tools,
+    tools_output,
+    tools_return,
+    cash,
+    expense,
+    expense_task,
 )
 
 app = FastAPI()
@@ -106,3 +112,9 @@ app.include_router(invoice_products.router)
 app.include_router(invoice_technician.router)
 app.include_router(payment_method.router)
 app.include_router(payment.router)
+app.include_router(tools.router)
+app.include_router(tools_output.router)
+app.include_router(tools_return.router)
+app.include_router(cash.router)
+app.include_router(expense.router)
+app.include_router(expense_task.router)

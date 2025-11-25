@@ -22,7 +22,6 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@router.get("/next-reference-po/")
 def get_next_reference(db: db_dependency):
     current_year = datetime.now().year
 
@@ -46,10 +45,9 @@ def get_next_reference(db: db_dependency):
             # Fallback si le format n’est pas reconnu
             next_ref = f"PO-{current_year}-001"
 
-    return {"next_reference": next_ref}
+    return next_ref
 
 
-@router.get("/next-reference-pro/")
 def get_next_reference_pro(db: db_dependency):
     current_year = datetime.now().year
 
@@ -73,10 +71,9 @@ def get_next_reference_pro(db: db_dependency):
             # Fallback si le format n’est pas reconnu
             next_ref = f"PRO-{current_year}-001"
 
-    return {"next_reference": next_ref}
+    return next_ref
 
 
-@router.get("/next-reference-invoice/")
 def get_next_reference_invoice(db: db_dependency):
     current_year = datetime.now().year
 
@@ -100,10 +97,9 @@ def get_next_reference_invoice(db: db_dependency):
             # Fallback si le format n’est pas reconnu
             next_ref = f"INV-{current_year}-001"
 
-    return {"next_reference": next_ref}
+    return next_ref
 
 
-@router.get("/next-reference-payment/")
 def get_next_reference_payment(db: db_dependency):
     current_year = datetime.now().year
 
@@ -127,7 +123,7 @@ def get_next_reference_payment(db: db_dependency):
             # Fallback si le format n’est pas reconnu
             next_ref = f"REF-{current_year}-001"
 
-    return {"next_reference": next_ref}
+    return next_ref
 
 
 def get_expense_reference(db: db_dependency):
@@ -153,4 +149,4 @@ def get_expense_reference(db: db_dependency):
             # Fallback si le format n’est pas reconnu
             next_ref = f"EXP-{current_year}-001"
 
-    return {"next_reference": next_ref}
+    return next_ref

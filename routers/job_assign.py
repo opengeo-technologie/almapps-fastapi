@@ -25,26 +25,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.get("/", response_model=List[JobAssignResponse])
 async def read_all(db: db_dependency):
-    # Query parcels with geometry as GeoJSON
-    result = db.execute(
-        text(
-            """
-        SELECT * FROM jobs_assigns;
-    """
-        )
-    )
-    data = []
-    for row in result:
-        data.append(
-            {
-                "id": row.id,
-                "job_id": row.job_id,
-                "technician_id": row.technician_id,
-                "date_start": row.date_start,
-                "date_end": row.date_end,
-            }
-        )
-    return data
+    return db.query(JobAssign).all()
 
 
 @router.get("/{job_assign_id}", response_model=JobAssignResponse)

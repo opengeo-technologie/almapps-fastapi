@@ -10,6 +10,7 @@ from ..schemas import (
     PurchaseOrderUpdate,
 )
 from typing import List
+from ..utils.generate_references import get_next_reference
 
 
 router = APIRouter(prefix="/purchase_orders", tags=["Purchase Orders"])
@@ -48,11 +49,19 @@ def get_purchase_order(po_id: int, db: Session = Depends(get_db)):
     "/create", response_model=PurchaseOrderResponse, status_code=status.HTTP_201_CREATED
 )
 def create_purchase_order(po: PurchaseOrderCreate, db: db_dependency):
-    db_po = PurchaseOrder(**po.model_dump())
-    db.add(db_po)
+    # db_po = PurchaseOrder(**po.model_dump())
+
+    # ✅ Generate reference
+    ref = get_next_reference(db)
+
+    # ✅ Update schema value directly
+    updated_data = po.model_copy(update={"reference": ref})
+    # print(updated_order.model_dump())
+    query = PurchaseOrder(**updated_data.model_dump())
+    db.add(query)
     db.commit()
-    db.refresh(db_po)
-    return db_po
+    db.refresh(query)
+    return query
 
 
 # Update

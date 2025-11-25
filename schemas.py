@@ -288,6 +288,8 @@ class JobAssignResponse(JobBase):
     technician_id: int
     date_start: date
     date_end: date
+    technician: Optional[TechnicianResponse] = {}
+    job: Optional[JobResponse] = {}
 
     class Config:
         from_attributes = True
@@ -774,10 +776,198 @@ class PaymentSimpleResponse(PaymentBase):
 
 class InvoicePaymentResponse(InvoiceBase):
     id: int
-    client: Optional[ClientResponse]
     payments: Optional[List[PaymentSimpleResponse]] = []
+    technicians: Optional[List[InvoiceTechnicianResponse]] = []
+    products: Optional[List[InvoiceProductResponse]] = []
+    jobs: Optional[List[InvoiceJobResponse]] = []
+    client: Optional[ClientResponse]
     company: Optional[CompanyDetailResponse]
     user: Optional[UserResponse]
+    type: Optional[InvoiceTypeResponse]
+
+    class Config:
+        from_attributes = True
+
+
+class ToolBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    stock_level: Optional[float] = None
+
+
+class ToolCreate(ToolBase):
+    pass
+
+
+class ToolUpdate(ToolBase):
+    pass
+
+
+class ToolResponse(ToolBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class ToolOutputBase(BaseModel):
+    tool_id: Optional[int]
+    technician_id: Optional[int]
+    user_id: Optional[int]
+    quantity: Optional[float]
+    date_output: date
+
+
+class ToolOutputCreate(ToolOutputBase):
+    pass
+
+
+class ToolOutputUpdate(ToolOutputBase):
+    pass
+
+
+class ToolOutputResponse(ToolOutputBase):
+    id: int
+    tool: Optional[ToolResponse]
+    technician: Optional[TechnicianResponse]
+    user: Optional[UserResponse]
+
+    class Config:
+        from_attributes = True
+
+
+class ToolReturnBase(BaseModel):
+    technician_id: Optional[int]
+    user_id: Optional[int]
+    tool_output_id: Optional[int]
+    quantity: Optional[float]
+    date_return: date
+
+
+class ToolReturnCreate(ToolReturnBase):
+    pass
+
+
+class ToolReturnUpdate(ToolReturnBase):
+    pass
+
+
+class ToolReturnResponse(ToolReturnBase):
+    id: int
+    tool_output: Optional[ToolOutputResponse]
+    technician: Optional[TechnicianResponse]
+    user: Optional[UserResponse]
+
+    class Config:
+        from_attributes = True
+
+
+class CashRegisterBase(BaseModel):
+    opening_balance: Optional[float]
+    closing_balance: Optional[float] = None
+    status: Optional[str] = None
+    date: date
+
+
+class CashRegisterCreate(CashRegisterBase):
+    pass
+
+
+class CashRegisterUpdate(CashRegisterBase):
+    pass
+
+
+class CashRegisterResponse(CashRegisterBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class TransactionBase(BaseModel):
+    type: Optional[str]
+    amount: Optional[float] = None
+    description: Optional[str] = None
+    date: date
+    cash_id: Optional[int]
+    user_id: Optional[int]
+
+
+class TransactionCreate(TransactionBase):
+    pass
+
+
+class TransactionUpdate(TransactionBase):
+    pass
+
+
+class TransactionResponse(TransactionBase):
+    id: int
+    cash: Optional[CashRegisterResponse]
+    user: Optional[UserResponse]
+
+    class Config:
+        from_attributes = True
+
+
+class ExpenseBase(BaseModel):
+    reference: Optional[str]
+    amount: Optional[float] = None
+    label: Optional[str] = None
+    type_expense: Optional[str] = None
+    date: date
+    user_id: Optional[int] = None
+    invoice_id: Optional[int] = None
+
+
+class ExpenseCreate(ExpenseBase):
+    pass
+
+
+class ExpenseUpdate(ExpenseBase):
+    pass
+
+
+# class ExpenseResponse(ExpenseBase):
+#     id: int
+#     invoice: Optional[InvoiceResponse]
+#     # user: Optional[UserResponse]
+
+#     class Config:
+#         from_attributes = True
+
+
+class ExpenseTaskBase(BaseModel):
+    amount: Optional[float] = None
+    task: Optional[str] = None
+    expense_id: Optional[int] = None
+    technician_id: Optional[int] = None
+    job_assign_id: Optional[int] = None
+    job_id: Optional[int] = None
+
+
+class ExpenseTaskCreate(ExpenseTaskBase):
+    pass
+
+
+class ExpenseTaskUpdate(ExpenseTaskBase):
+    pass
+
+
+class ExpenseTaskResponse(ExpenseTaskBase):
+    id: int
+    technician: Optional[TechnicianResponse]
+    job: Optional[JobResponse]
+
+    class Config:
+        from_attributes = True
+
+
+class ExpenseResponse(ExpenseBase):
+    id: int
+    invoice: Optional[InvoiceResponse]
+    user: Optional[UserResponse]
+    tasks: Optional[List[ExpenseTaskResponse]] = []
 
     class Config:
         from_attributes = True

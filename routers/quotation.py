@@ -11,6 +11,7 @@ from ..schemas import (
     QuotationUpdate,
 )
 from typing import List
+from ..utils.generate_references import get_next_reference_pro
 
 
 router = APIRouter(
@@ -52,11 +53,19 @@ def read_quotation(quotation_id: int, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_quotation(quotation: QuotationCreate, db: Session = Depends(get_db)):
-    db_quotation = Quotation(**quotation.model_dump())
-    db.add(db_quotation)
+    # db_quotation = Quotation(**quotation.model_dump())
+
+    # ✅ Generate reference
+    ref = get_next_reference_pro(db)
+
+    # ✅ Update schema value directly
+    updated_expense = quotation.model_copy(update={"reference": ref})
+    # print(updated_order.model_dump())
+    query = Quotation(**updated_expense.model_dump())
+    db.add(query)
     db.commit()
-    db.refresh(db_quotation)
-    return db_quotation
+    db.refresh(query)
+    return query
 
 
 # Update

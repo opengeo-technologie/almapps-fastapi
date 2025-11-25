@@ -4,8 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette import status
 from ..models import Invoice
 from ..database import SessionLocal
-from ..schemas import InvoiceResponse, InvoiceCreate, InvoiceUpdate
+from ..schemas import (
+    InvoiceResponse,
+    InvoiceCreate,
+    InvoiceUpdate,
+    InvoicePaymentResponse,
+)
 from typing import List
+from ..utils.generate_references import get_next_reference_invoice
 
 
 router = APIRouter(prefix="/invoices", tags=["Invoices"])
@@ -22,12 +28,12 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@router.get("/", response_model=List[InvoiceResponse])
+@router.get("/", response_model=List[InvoicePaymentResponse])
 async def read_all(db: db_dependency):
     return db.query(Invoice).all()
 
 
-@router.get("/{invoice_id}", response_model=InvoiceResponse)
+@router.get("/{invoice_id}", response_model=InvoicePaymentResponse)
 async def read_invoice(db: db_dependency, invoice_id: int = Path(gt=0)):
     query = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not query:
@@ -37,12 +43,20 @@ async def read_invoice(db: db_dependency, invoice_id: int = Path(gt=0)):
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_invoice(db: db_dependency, invoice_request: InvoiceCreate):
-    request_model = Invoice(**invoice_request.model_dump())
+    # request_model = Invoice(**invoice_request.model_dump())
 
-    db.add(request_model)
+    # ✅ Generate reference
+    ref = get_next_reference_invoice(db)
+
+    # ✅ Update schema value directly
+    updated_expense = invoice_request.model_copy(update={"reference": ref})
+    # print(updated_order.model_dump())
+    query = Invoice(**updated_expense.model_dump())
+
+    db.add(query)
     db.commit()
-    db.refresh(request_model)
-    return request_model
+    db.refresh(query)
+    return query
 
 
 @router.put("/update/{invoice_id}", status_code=status.HTTP_206_PARTIAL_CONTENT)

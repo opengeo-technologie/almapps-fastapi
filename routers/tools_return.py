@@ -6,18 +6,13 @@ from starlette import status
 from ..models import Tool, ToolOutput, ToolReturn
 from ..database import SessionLocal
 from ..schemas import (
-    ToolCreate,
-    ToolUpdate,
-    ToolResponse,
-    ToolOutputCreate,
-    ToolOutputResponse,
     ToolReturnCreate,
     ToolReturnResponse,
 )
 from typing import List
 
 
-router = APIRouter(prefix="/tools", tags=["Tools management"])
+router = APIRouter(prefix="/tools-return", tags=["Tools Return management"])
 
 
 def get_db():
@@ -31,24 +26,24 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@router.get("/", response_model=List[ToolResponse])
+@router.get("/", response_model=List[ToolReturnResponse])
 async def read_all(db: db_dependency):
-    return db.query(Tool).all()
+    return db.query(ToolReturn).all()
 
 
-@router.get("/{tool_id}", response_model=ToolResponse)
+@router.get("/{tool_id}", response_model=ToolReturnResponse)
 async def read_tool(db: db_dependency, tool_id: int = Path(gt=0)):
-    db_model = db.query(Tool).filter(Tool.id == tool_id).first()
+    db_model = db.query(ToolReturn).filter(ToolReturn.id == tool_id).first()
     if not db_model:
         raise HTTPException(status_code=404, detail="Data not found")
     return db_model
 
 
 @router.post(
-    "/create", response_model=ToolResponse, status_code=status.HTTP_201_CREATED
+    "/create", response_model=ToolReturnResponse, status_code=status.HTTP_201_CREATED
 )
-async def create_tool(db: db_dependency, tool_request: ToolCreate):
-    db_model = Tool(**tool_request.model_dump())
+async def create_tool(db: db_dependency, tool_request: ToolReturnCreate):
+    db_model = ToolReturn(**tool_request.model_dump())
 
     db.add(db_model)
     db.commit()
@@ -58,16 +53,16 @@ async def create_tool(db: db_dependency, tool_request: ToolCreate):
 
 @router.put(
     "/update/{tool_id}",
-    response_model=ToolResponse,
+    response_model=ToolReturnResponse,
     status_code=status.HTTP_206_PARTIAL_CONTENT,
 )
 async def update_tool(
     db: db_dependency,
-    tool_request: ToolUpdate,
+    tool_request: ToolReturnCreate,
     tool_id: int = Path(gt=0),
 ):
 
-    db_model = db.query(Tool).filter(Tool.id == tool_id).first()
+    db_model = db.query(ToolReturn).filter(ToolReturn.id == tool_id).first()
     if not db_model:
         raise HTTPException(status_code=404, detail="Data not found")
 
@@ -83,7 +78,7 @@ async def update_tool(
 @router.delete("/delete/{tool_id}", status_code=status.HTTP_202_ACCEPTED)
 async def delete_tool(db: db_dependency, tool_id: int = Path(gt=0)):
 
-    db_model = db.query(Tool).filter(Tool.id == tool_id).first()
+    db_model = db.query(ToolReturn).filter(ToolOutput.id == tool_id).first()
     if not db_model:
         raise HTTPException(status_code=404, detail="Data not found")
 

@@ -2,6 +2,7 @@ from .database import Base
 import datetime
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
+from datetime import date
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -52,6 +53,10 @@ class User(Base):
     purchase_orders = relationship("PurchaseOrder", back_populates="user")
     quotations = relationship("Quotation", back_populates="user")
     payments = relationship("Payment", back_populates="user")
+    tool_output = relationship("ToolOutput", back_populates="user")
+    tool_return = relationship("ToolReturn", back_populates="user")
+    transactions = relationship("Transaction", back_populates="user")
+    expense = relationship("Expense", back_populates="user")
 
 
 # Client's type model (Personal, Company)
@@ -223,6 +228,10 @@ class Technician(Base):
 
     invoice_technicians = relationship("InvoiceTechnician", back_populates="technician")
     role = relationship("RoleTechnician", back_populates="technicians")
+    tool_output = relationship("ToolOutput", back_populates="technician")
+    tool_return = relationship("ToolReturn", back_populates="technician")
+    task = relationship("ExpenseTask", back_populates="technician")
+    jobs_assign = relationship("JobAssign", back_populates="technician")
 
 
 class Tool(Base):
@@ -238,6 +247,8 @@ class Tool(Base):
     updated_at = Column(
         DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc)
     )
+
+    tool_output = relationship("ToolOutput", back_populates="tool")
 
 
 class ToolOutput(Base):
@@ -256,12 +267,17 @@ class ToolOutput(Base):
         DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc)
     )
 
+    tool = relationship("Tool", back_populates="tool_output")
+    technician = relationship("Technician", back_populates="tool_output")
+    user = relationship("User", back_populates="tool_output")
+    tool_return = relationship("ToolReturn", back_populates="tool_output")
+
 
 class ToolReturn(Base):
     __tablename__ = "tools_returns"
 
     id = Column(Integer, primary_key=True, index=True)
-    tool_id = Column(Integer, ForeignKey("tools.id"))
+    tool_output_id = Column(Integer, ForeignKey("tools_outputs.id"))
     technician_id = Column(Integer, ForeignKey("technicians.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     quantity = Column(Float, nullable=False, default=0.0)
@@ -272,6 +288,10 @@ class ToolReturn(Base):
     updated_at = Column(
         DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc)
     )
+
+    tool_output = relationship("ToolOutput", back_populates="tool_return")
+    technician = relationship("Technician", back_populates="tool_return")
+    user = relationship("User", back_populates="tool_return")
 
 
 class Job(Base):
@@ -291,6 +311,8 @@ class Job(Base):
     )
 
     invoice_jobs = relationship("InvoiceJob", back_populates="job")
+    tasks_job = relationship("ExpenseTask", back_populates="job")
+    jobs_assign = relationship("JobAssign", back_populates="job")
 
 
 class JobAssign(Base):
@@ -307,6 +329,10 @@ class JobAssign(Base):
     updated_at = Column(
         DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc)
     )
+
+    technician = relationship("Technician", back_populates="jobs_assign")
+    job = relationship("Job", back_populates="jobs_assign")
+    tasks_job_assign = relationship("ExpenseTask", back_populates="job_assign")
 
 
 class JobReport(Base):
@@ -590,6 +616,7 @@ class Invoice(Base):
     client = relationship("Client", back_populates="invoices")
     company = relationship("CompanyDetail", back_populates="invoices")
     user = relationship("User", back_populates="invoices")
+    expense = relationship("Expense", back_populates="invoice")
     jobs = relationship(
         "InvoiceJob",
         back_populates="invoice",
@@ -694,3 +721,60 @@ class Payment(Base):
     company = relationship("CompanyDetail", back_populates="payments")
     user = relationship("User", back_populates="payments")
     method = relationship("PaymentMethod", back_populates="payments")
+
+
+class CashRegister(Base):
+    __tablename__ = "cash_registers"
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, default=date.today, unique=True)
+    opening_balance = Column(Float, nullable=False)
+    closing_balance = Column(Float)
+    status = Column(String(20), default="open")  # open / closed
+
+    transactions = relationship("Transaction", back_populates="cash")
+
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+    id = Column(Integer, primary_key=True)
+    type = Column(String(10))  # 'in' or 'out'
+    amount = Column(Float, nullable=False)
+    description = Column(String(255))
+    date = Column(Date, default=date.today)
+    cash_id = Column(Integer, ForeignKey("cash_registers.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    cash = relationship("CashRegister", back_populates="transactions")
+    user = relationship("User", back_populates="transactions")
+
+
+class Expense(Base):
+    __tablename__ = "expenses"
+    id = Column(Integer, primary_key=True, index=True)
+    reference = Column(String(15), nullable=False)
+    date = Column(Date, default=date.today)
+    amount = Column(Float, nullable=False)
+    label = Column(String(255), nullable=False)
+    type_expense = Column(String(20))
+    user_id = Column(Integer, ForeignKey("users.id"))
+    invoice_id = Column(Integer, ForeignKey("invoices.id"), nullable=True)
+
+    invoice = relationship("Invoice", back_populates="expense")
+    tasks = relationship("ExpenseTask", back_populates="expense")
+    user = relationship("User", back_populates="expense")
+
+
+class ExpenseTask(Base):
+    __tablename__ = "expense_tasks"
+    id = Column(Integer, primary_key=True, index=True)
+    expense_id = Column(Integer, ForeignKey("expenses.id"))
+    technician_id = Column(Integer, ForeignKey("technicians.id"), nullable=True)
+    job_id = Column(Integer, ForeignKey("jobs.id"), nullable=True)
+    job_assign_id = Column(Integer, ForeignKey("jobs_assigns.id"), nullable=True)
+    task = Column(String(255), nullable=False)
+    amount = Column(Float, nullable=False)
+
+    expense = relationship("Expense", back_populates="tasks")
+    technician = relationship("Technician", back_populates="task")
+    job = relationship("Job", back_populates="tasks_job")
+    job_assign = relationship("JobAssign", back_populates="tasks_job_assign")
