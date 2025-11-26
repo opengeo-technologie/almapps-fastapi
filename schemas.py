@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import date
 
+from sqlalchemy import false
+
 
 class ProfileBase(BaseModel):
     name: str
@@ -248,41 +250,38 @@ class TechnicianResponse(TechnicianBase):
 
 
 class JobBase(BaseModel):
-    pass
-
-
-class JobCreate(JobBase):
     job_name: str
     job_description: str
     duration: float
     price: float
+    status: Optional[bool] = False
     date_program: Optional[date] = None
+
+
+class JobCreate(JobBase):
+    pass
 
 
 class JobResponse(JobBase):
     id: int
-    job_name: str
-    job_description: str
-    duration: float
-    price: float
-    date_program: date
 
     class Config:
         from_attributes = True
 
 
 class JobAssignBase(BaseModel):
-    pass
-
-
-class JobAssignCreate(JobBase):
     job_id: int
     technician_id: int
     date_start: date
     date_end: date
+    amount: Optional[float] = 0.0
 
 
-class JobAssignResponse(JobBase):
+class JobAssignCreate(JobAssignBase):
+    pass
+
+
+class JobAssignResponse(JobAssignBase):
     id: int
     job_id: int
     technician_id: int
@@ -958,6 +957,7 @@ class ExpenseTaskResponse(ExpenseTaskBase):
     id: int
     technician: Optional[TechnicianResponse]
     job: Optional[JobResponse]
+    job_assign: Optional[JobAssignResponse]
 
     class Config:
         from_attributes = True

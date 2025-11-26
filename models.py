@@ -303,6 +303,7 @@ class Job(Base):
     duration = Column(Float, nullable=True, default=0.0)
     price = Column(Float, nullable=True, default=0.0)
     date_program = Column(Date, nullable=True)
+    status = Column(Boolean, default=False)
     created_at = Column(
         DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc)
     )
@@ -323,6 +324,7 @@ class JobAssign(Base):
     technician_id = Column(Integer, ForeignKey("technicians.id"))
     date_start = Column(Date, nullable=False)
     date_end = Column(Date, nullable=False)
+    amount = Column(Float, nullable=True, default=0.0)
     created_at = Column(
         DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc)
     )

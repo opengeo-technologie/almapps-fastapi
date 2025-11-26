@@ -26,53 +26,22 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.get("/", response_model=List[JobResponse])
 async def read_all(db: db_dependency):
     # Query parcels with geometry as GeoJSON
-    result = db.execute(
-        text(
-            """
-        SELECT * FROM jobs;
-    """
-        )
-    )
-    data = []
-    for row in result:
-        data.append(
-            {
-                "id": row.id,
-                "job_name": row.job_name,
-                "job_description": row.job_description,
-                "duration": row.duration,
-                "price": row.price,
-                "date_program": row.date_program,
-            }
-        )
-    return data
+    return db.query(Job).all()
 
 
 @router.get("/{job_id}", response_model=JobResponse)
 async def read_job(db: db_dependency, job_id: int = Path(gt=0)):
     # Query parcels with geometry as GeoJSON
-    result = db.execute(
-        text(
-            """
-        SELECT *
-        FROM jobs
-        WHERE id = :job_id
-    """
-        ),
-        {"job_id": job_id},
-    ).fetchone()
-
-    if not result:
+    query = db.query(Job).filter(Job.id == job_id).first()
+    if not query:
         raise HTTPException(status_code=404, detail="Data not found")
+    return query
 
-    return {
-        "id": result.id,
-        "job_name": result.job_name,
-        "job_description": result.job_description,
-        "duration": result.duration,
-        "price": result.price,
-        "date_program": result.date_program,
-    }
+
+@router.get("/filter/{status}", response_model=List[JobResponse])
+async def read_invoice(db: db_dependency, job_status: bool):
+    query = db.query(Job).filter(Job.status == job_status).all()
+    return query
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
@@ -100,6 +69,7 @@ async def update_job(
     job_model.job_description = job_request.job_description
     job_model.duration = job_request.duration
     job_model.price = job_request.price
+    job_model.status = job_request.status
 
     db.add(job_model)
     db.commit()
