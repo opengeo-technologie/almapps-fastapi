@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette import status
-from ..models import JobAssign
+from ..models import JobAssign, Job
 from ..database import SessionLocal
 from ..schemas import JobAssignResponse, JobAssignCreate, TechnicianResponse
 from typing import List
@@ -133,3 +133,9 @@ async def delete_job_assign(
     ).delete()
 
     db.commit()
+
+
+@router.get("/filter/{job_status}", response_model=List[JobAssignResponse])
+async def filter_assign_job_by_job_status(db: db_dependency, job_status: bool):
+    query = db.query(JobAssign).join(Job).filter(Job.status == job_status).all()
+    return query

@@ -758,6 +758,7 @@ class Expense(Base):
     amount = Column(Float, nullable=False)
     label = Column(String(255), nullable=False)
     type_expense = Column(String(20))
+    deleted = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey("users.id"))
     invoice_id = Column(Integer, ForeignKey("invoices.id"), nullable=True)
 

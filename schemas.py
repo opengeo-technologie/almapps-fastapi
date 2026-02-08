@@ -917,6 +917,7 @@ class ExpenseBase(BaseModel):
     date: date
     user_id: Optional[int] = None
     invoice_id: Optional[int] = None
+    deleted: Optional[bool] = False
 
 
 class ExpenseCreate(ExpenseBase):

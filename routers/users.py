@@ -8,9 +8,12 @@ from ..schemas import UserCreate, UserResponse, UserUpdate, UserPasswordReset
 import profile
 from typing import List
 from passlib.context import CryptContext
+from ..core.logger import get_logger
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+logger = get_logger("users")
 
 
 def get_db():
@@ -27,6 +30,7 @@ bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.get("/", response_model=List[UserResponse])
 async def read_all(db: db_dependency):
+    logger.info("Fetching user %s", "all")
     return db.query(User).all()
 
 
@@ -52,6 +56,7 @@ async def create_user(db: db_dependency, user_request: UserCreate):
     db.add(create_user_model)
     db.commit()
     db.refresh(create_user_model)
+    logger.info("Fetching user %s", "all")
     return create_user_model
 
 

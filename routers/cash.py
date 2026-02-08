@@ -68,6 +68,20 @@ def open_cash(opening_balance: float, db: db_dependency):
     return new_cash
 
 
+@router.post("/reopen")
+def reopen_cash(db: db_dependency, cash_id: int = Path(gt=0)):
+    cash = db.query(CashRegister).filter(CashRegister.id == cash_id).first()
+
+    if not cash:
+        raise HTTPException(
+            status_code=404, detail="Caisse non trouvée ou déjà fermée."
+        )
+    cash.status = "open"
+    db.commit()
+    db.refresh(cash)
+    return cash
+
+
 @router.post("/close")
 def close_cash(db: db_dependency):
     cash = db.query(CashRegister).filter(CashRegister.status == "open").first()

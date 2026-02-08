@@ -1,8 +1,15 @@
 from fastapi import FastAPI, Request, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import time
+import logging
+from .logging_config import setup_logging
+from .core.dependencies import log_request
 from .database import SessionLocal
 from .models import Base
 from .database import engine
+
+# from .core.geoip import get_country
 from .routers import (
     auth,
     products_input,
@@ -41,9 +48,58 @@ from .routers import (
     cash,
     expense,
     expense_task,
+    logs,
 )
 
-app = FastAPI()
+logger = logging.getLogger("request")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 🔹 STARTUP
+    setup_logging()
+    logging.getLogger(__name__).info("FastAPI started")
+
+    yield
+
+    # 🔹 SHUTDOWN
+    logging.getLogger(__name__).info("FastAPI stopped")
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+def get_client_ip(request):
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+@app.middleware("http")
+async def log_all_requests(request: Request, call_next):
+    start_time = time.time()
+
+    response = await call_next(request)
+
+    duration = round(time.time() - start_time, 4)
+
+    client_ip = get_client_ip(request)
+    # country = get_country(client_ip)
+    user_agent = request.headers.get("user-agent", "unknown")
+
+    logger.info(
+        "%s %s | status=%s | client_ip=%s | %s | duration=%ss",
+        request.method,
+        request.url.path,
+        response.status_code,
+        client_ip,
+        user_agent,
+        duration,
+    )
+
+    return response
+
 
 # Allow your frontend origin
 origins = [
@@ -78,11 +134,17 @@ def health_check():
     return {"status": "Healthy"}
 
 
+@app.on_event("startup")
+async def startup_event():
+    logger.info("FastAPI application started")
+
+
 # UPLOAD_DIR = "uploads/reports/images"
 # os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app.include_router(auth.router)
 app.include_router(generate_references.router)
+app.include_router(logs.router)
 app.include_router(profile.router)
 app.include_router(users.router)
 app.include_router(client_types.router)

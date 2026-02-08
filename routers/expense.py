@@ -27,7 +27,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.get("/", response_model=List[ExpenseResponse])
 async def read_all(db: db_dependency):
-    return db.query(Expense).all()
+    return db.query(Expense).filter(Expense.deleted == False).all()
 
 
 @router.get("/{expense_id}", response_model=ExpenseResponse)
@@ -90,7 +90,12 @@ async def delete_expense(db: db_dependency, expense_id: int = Path(gt=0)):
 
 @router.get("/report-per-year/{year}", response_model=List[ExpenseResponse])
 async def read_expense(db: db_dependency, year: int = Path(gt=0)):
-    query = db.query(Expense).filter(extract("year", Expense.date) == year).all()
+    query = (
+        db.query(Expense)
+        .filter(extract("year", Expense.date) == year)
+        .filter(Expense.deleted == False)
+        .all()
+    )
     # if not query:
     #     raise HTTPException(status_code=404, detail="Data not found")
     return query
@@ -98,7 +103,12 @@ async def read_expense(db: db_dependency, year: int = Path(gt=0)):
 
 @router.get("/report-per-month/{month}", response_model=List[ExpenseResponse])
 async def read_expense(db: db_dependency, month: int = Path(gt=0)):
-    query = db.query(Expense).filter(extract("month", Expense.date) == month).all()
+    query = (
+        db.query(Expense)
+        .filter(extract("month", Expense.date) == month)
+        .filter(Expense.deleted == False)
+        .all()
+    )
     # if not query:
     #     raise HTTPException(status_code=404, detail="Data not found")
     return query
@@ -106,7 +116,12 @@ async def read_expense(db: db_dependency, month: int = Path(gt=0)):
 
 @router.get("/report-per-week/{week}", response_model=List[ExpenseResponse])
 async def read_expense(db: db_dependency, week: int = Path(gt=0)):
-    query = db.query(Expense).filter(extract("week", Expense.date) == week - 1).all()
+    query = (
+        db.query(Expense)
+        .filter(extract("week", Expense.date) == week - 1)
+        .filter(Expense.deleted == False)
+        .all()
+    )
     # if not query:
     #     raise HTTPException(status_code=404, detail="Data not found")
     return query

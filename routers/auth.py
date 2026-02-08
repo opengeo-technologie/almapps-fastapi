@@ -12,13 +12,13 @@ from ..utils.auth_utils import (
     hashed_password,
     decode_access_token,
 )
-
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-
 from jose import jwt, JWTError
+from ..core.logger import get_logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = get_logger("authentification")
 
 
 SECRET_KEY = "7f3c64622007ae3a085708c6d00dcd7ccaae3047ecf1872ad0846659038e1115"
@@ -56,6 +56,7 @@ def authenticate_user(email: str, password: str, db):
         return False
     if not verify_password(password, user.password):
         return False
+
     return user
 
 
@@ -104,5 +105,6 @@ async def login_user(user_data: UserConnect, db: db_dependency):
         raise HTTPException(status_code=400, detail="Password invalid")
     access_token = create_access_token(data={"sub": db_user.username, "id": db_user.id})
     del db_user.password
+    logger.info("User authentification succeeded %s", db_user.username)
 
     return {"access_token": access_token, "token_type": "bearer", "user": db_user}

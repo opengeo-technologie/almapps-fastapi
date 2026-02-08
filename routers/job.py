@@ -39,7 +39,7 @@ async def read_job(db: db_dependency, job_id: int = Path(gt=0)):
 
 
 @router.get("/filter/{status}", response_model=List[JobResponse])
-async def read_invoice(db: db_dependency, job_status: bool):
+async def filter_job_by_status(db: db_dependency, job_status: bool):
     query = db.query(Job).filter(Job.status == job_status).all()
     return query
 
