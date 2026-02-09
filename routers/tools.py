@@ -1,8 +1,10 @@
 from typing import Annotated
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile
 from starlette import status
+
+from backend1.utils.excel_importer import import_excel_file
 from ..models import Tool, ToolOutput, ToolReturn
 from ..database import SessionLocal
 from ..schemas import (
@@ -54,6 +56,20 @@ async def create_tool(db: db_dependency, tool_request: ToolCreate):
     db.commit()
     db.refresh(db_model)
     return db_model
+
+
+@router.post("/import/tools")
+async def import_tools(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    result = import_excel_file(
+        file=file,
+        db=db,
+        model=Tool,
+        unique_field="name",
+        quantity_field="stock_level",
+        required_columns=["name", "stock_level"],
+    )
+
+    return {"message": "Import completed", **result}
 
 
 @router.put(
