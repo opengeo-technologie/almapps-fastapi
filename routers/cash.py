@@ -4,10 +4,17 @@ from typing import Annotated, List
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from starlette import status
-from ..models import CashRegister, Transaction
+from ..model.cash_register import CashRegister, Transaction
+
+# from ..models import CashRegister, Transaction
 from ..database import SessionLocal
 from datetime import date
-from ..schemas import CashRegisterResponse, TransactionResponse, TransactionCreate
+from ..schemas import (
+    CashRegisterResponse,
+    TransactionResponse,
+    TransactionCreate,
+    CashRegisterCreate,
+)
 
 router = APIRouter(prefix="/cash", tags=["cash"])
 
@@ -66,6 +73,16 @@ def open_cash(opening_balance: float, db: db_dependency):
     db.commit()
     db.refresh(new_cash)
     return new_cash
+
+
+@router.post("/create")
+def create_cashdesk_open(db: db_dependency, db_request: CashRegisterCreate):
+    db_model = CashRegister(**db_request.model_dump())
+
+    db.add(db_model)
+    db.commit()
+    db.refresh(db_model)  # refresh to get generated fields like id
+    return db_model
 
 
 @router.post("/reopen")

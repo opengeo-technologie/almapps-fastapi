@@ -30,7 +30,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 # Read all
 @router.get("/", response_model=List[PurchaseOrderResponse])
 def get_purchase_orders(db: Session = Depends(get_db)):
-    return db.query(PurchaseOrder).all()
+    return db.query(PurchaseOrder).filter(PurchaseOrder.on_delete != True).all()
 
 
 # Read by ID

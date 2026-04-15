@@ -1,6 +1,11 @@
+from fastapi import HTTPException
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import timedelta, datetime, timezone
+
+from sqlalchemy.orm import Session
+
+from ..models import User
 
 
 SECRET_KEY = "7f3c64622007ae3a085708c6d00dcd7ccaae3047ecf1872ad0846659038e1115"
@@ -16,6 +21,14 @@ def hashed_password(password: str):
 
 def verify_password(plain_password, hashed_password):
     return bcrypt_context.verify(plain_password, hashed_password)
+
+
+def get_current_user(db: Session, user_id: int = 1) -> User:
+    """Get current user (simplified - use JWT in production)"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 
 def create_access_token(

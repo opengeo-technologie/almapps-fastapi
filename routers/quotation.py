@@ -34,7 +34,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 # Get all
 @router.get("/", response_model=List[QuotationResponse])
 def read_all(db: Session = Depends(get_db)):
-    return db.query(Quotation).all()
+    return db.query(Quotation).filter(Quotation.on_delete == False).all()
 
 
 # Get by id

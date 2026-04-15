@@ -58,6 +58,9 @@ class User(Base):
     transactions = relationship("Transaction", back_populates="user")
     expense = relationship("Expense", back_populates="user")
 
+    def __repr__(self):
+        return f"<User {self.username}>"
+
 
 # Client's type model (Personal, Company)
 class ClientType(Base):
@@ -725,29 +728,29 @@ class Payment(Base):
     method = relationship("PaymentMethod", back_populates="payments")
 
 
-class CashRegister(Base):
-    __tablename__ = "cash_registers"
-    id = Column(Integer, primary_key=True, index=True)
-    date = Column(Date, default=date.today, unique=True)
-    opening_balance = Column(Float, nullable=False)
-    closing_balance = Column(Float)
-    status = Column(String(20), default="open")  # open / closed
+# class CashRegister(Base):
+#     __tablename__ = "cash_registers"
+#     id = Column(Integer, primary_key=True, index=True)
+#     date = Column(Date, default=date.today, unique=True)
+#     opening_balance = Column(Float, nullable=False)
+#     closing_balance = Column(Float)
+#     status = Column(String(20), default="open")  # open / closed
 
-    transactions = relationship("Transaction", back_populates="cash")
+#     transactions = relationship("Transaction", back_populates="cash")
 
 
-class Transaction(Base):
-    __tablename__ = "transactions"
-    id = Column(Integer, primary_key=True)
-    type = Column(String(10))  # 'in' or 'out'
-    amount = Column(Float, nullable=False)
-    description = Column(String(255))
-    date = Column(Date, default=date.today)
-    cash_id = Column(Integer, ForeignKey("cash_registers.id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
+# class Transaction(Base):
+#     __tablename__ = "transactions"
+#     id = Column(Integer, primary_key=True)
+#     type = Column(String(10))  # 'in' or 'out'
+#     amount = Column(Float, nullable=False)
+#     description = Column(String(255))
+#     date = Column(Date, default=date.today)
+#     cash_id = Column(Integer, ForeignKey("cash_registers.id"))
+#     user_id = Column(Integer, ForeignKey("users.id"))
 
-    cash = relationship("CashRegister", back_populates="transactions")
-    user = relationship("User", back_populates="transactions")
+#     cash = relationship("CashRegister", back_populates="transactions")
+#     user = relationship("User", back_populates="transactions")
 
 
 class Expense(Base):

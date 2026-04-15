@@ -413,7 +413,8 @@ class PurchaseOrderBase(BaseModel):
     status: Optional[bool] = None
     currency_used: Optional[str] = None
     locale_currency: Optional[str] = None
-    on_delete: Optional[bool] = None
+    on_delete: Optional[bool] = False
+    user_id_del: Optional[int] = None
     reason_delete: Optional[str] = None
 
 
@@ -524,7 +525,8 @@ class QuotationBase(BaseModel):
     status: Optional[bool] = False
     currency_used: Optional[str] = None
     locale_currency: Optional[str] = None
-    on_delete: Optional[bool] = None
+    on_delete: Optional[bool] = False
+    user_id_del: Optional[int] = None
     reason_delete: Optional[str] = None
 
 
@@ -666,9 +668,9 @@ class InvoiceBase(BaseModel):
     heading: Optional[str] = None
     currency_used: Optional[str] = None
     locale_currency: Optional[str] = None
-    on_delete: Optional[bool] = None
+    on_delete: Optional[bool] = False
     reason_delete: Optional[str] = None
-    # user_id_del: Optional[int] = None
+    user_id_del: Optional[int] = None
 
 
 class InvoiceCreate(InvoiceBase):
@@ -687,7 +689,7 @@ class InvoiceUpdate(BaseModel):
     status: Optional[bool] = False
     currency_used: Optional[str] = None
     locale_currency: Optional[str] = None
-    on_delete: Optional[bool] = None
+    on_delete: Optional[bool] = False
     reason_delete: Optional[str] = None
     user_id_del: Optional[int] = None
 
@@ -861,52 +863,52 @@ class ToolReturnResponse(ToolReturnBase):
         from_attributes = True
 
 
-class CashRegisterBase(BaseModel):
-    opening_balance: Optional[float]
-    closing_balance: Optional[float] = None
-    status: Optional[str] = None
-    date: date
+# class CashRegisterBase(BaseModel):
+#     opening_balance: Optional[float]
+#     closing_balance: Optional[float] = None
+#     status: Optional[str] = None
+#     date: date
 
 
-class CashRegisterCreate(CashRegisterBase):
-    pass
+# class CashRegisterCreate(CashRegisterBase):
+#     pass
 
 
-class CashRegisterUpdate(CashRegisterBase):
-    pass
+# class CashRegisterUpdate(CashRegisterBase):
+#     pass
 
 
-class CashRegisterResponse(CashRegisterBase):
-    id: int
+# class CashRegisterResponse(CashRegisterBase):
+#     id: int
 
-    class Config:
-        from_attributes = True
-
-
-class TransactionBase(BaseModel):
-    type: Optional[str]
-    amount: Optional[float] = None
-    description: Optional[str] = None
-    date: date
-    cash_id: Optional[int]
-    user_id: Optional[int]
+#     class Config:
+#         from_attributes = True
 
 
-class TransactionCreate(TransactionBase):
-    pass
+# class TransactionBase(BaseModel):
+#     type: Optional[str]
+#     amount: Optional[float] = None
+#     description: Optional[str] = None
+#     date: date
+#     cash_id: Optional[int]
+#     user_id: Optional[int]
 
 
-class TransactionUpdate(TransactionBase):
-    pass
+# class TransactionCreate(TransactionBase):
+#     pass
 
 
-class TransactionResponse(TransactionBase):
-    id: int
-    cash: Optional[CashRegisterResponse]
-    user: Optional[UserResponse]
+# class TransactionUpdate(TransactionBase):
+#     pass
 
-    class Config:
-        from_attributes = True
+
+# class TransactionResponse(TransactionBase):
+#     id: int
+#     cash: Optional[CashRegisterResponse]
+#     user: Optional[UserResponse]
+
+#     class Config:
+#         from_attributes = True
 
 
 class ExpenseBase(BaseModel):
@@ -969,6 +971,15 @@ class ExpenseResponse(ExpenseBase):
     invoice: Optional[InvoiceResponse]
     user: Optional[UserResponse]
     tasks: Optional[List[ExpenseTaskResponse]] = []
+
+    class Config:
+        from_attributes = True
+
+
+class ClientResponseDetail(ClientBase):
+    id: int
+    type: Optional[ClientTypeBase]
+    invoices: Optional[List[InvoiceResponse]] = []
 
     class Config:
         from_attributes = True

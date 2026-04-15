@@ -30,7 +30,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.get("/", response_model=List[InvoicePaymentResponse])
 async def read_all(db: db_dependency):
-    return db.query(Invoice).all()
+    return db.query(Invoice).filter(Invoice.on_delete == False).all()
 
 
 @router.get("/{invoice_id}", response_model=InvoicePaymentResponse)

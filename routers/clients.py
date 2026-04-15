@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette import status
 from ..models import Client
 from ..database import SessionLocal
-from ..schemas import ClientResponse, ClientCreate
+from ..schemas import ClientResponse, ClientCreate, ClientResponseDetail
 from typing import List
 
 
@@ -22,12 +22,12 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
-@router.get("/", response_model=List[ClientResponse])
+@router.get("/", response_model=List[ClientResponseDetail])
 async def read_all(db: db_dependency):
     return db.query(Client).all()
 
 
-@router.get("/{client_id}", response_model=ClientResponse)
+@router.get("/{client_id}", response_model=ClientResponseDetail)
 async def read_client(db: db_dependency, client_id: int = Path(gt=0)):
     db_client = db.query(Client).filter(Client.id == client_id).first()
     if not db_client:

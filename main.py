@@ -45,10 +45,11 @@ from .routers import (
     tools,
     tools_output,
     tools_return,
-    cash,
+    # cash,
     expense,
     expense_task,
     logs,
+    cash_register,
 )
 
 logger = logging.getLogger("request")
@@ -66,7 +67,12 @@ async def lifespan(app: FastAPI):
     logging.getLogger(__name__).info("FastAPI stopped")
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    version="1.0.0",
+    title="ALMAPPS API",
+    description="API for ALMAPPS application",
+)
 
 
 def get_client_ip(request):
@@ -142,6 +148,7 @@ async def startup_event():
 # UPLOAD_DIR = "uploads/reports/images"
 # os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+app.include_router(cash_register.router)
 app.include_router(auth.router)
 app.include_router(generate_references.router)
 app.include_router(logs.router)
@@ -177,6 +184,6 @@ app.include_router(payment.router)
 app.include_router(tools.router)
 app.include_router(tools_output.router)
 app.include_router(tools_return.router)
-app.include_router(cash.router)
+# app.include_router(cash.router)
 app.include_router(expense.router)
 app.include_router(expense_task.router)
